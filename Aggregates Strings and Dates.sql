@@ -14,6 +14,7 @@ go
 -- count(attribute) count the number of rows containing a data value
 -- count (distinct attribute) count the number of unique distinct values in the collection
 
+
 -- Find the number of students in the Offering 1001
 SELECT count(*)
 FROM Registration
