@@ -98,3 +98,118 @@ go
 --Order of your values MUST match the order requested by the procedure
 EXECUTE StudentClubCount 'NAITSA'
 go
+
+--Create a stored procedure called BalanceOrNoBalance. 
+--It will accept a studentID as a parameter. Each course has a cost. 
+--If the total of the costs for the courses the student is registered in 
+--is more than the total of the payments that student has made, 
+--then print ‘balance owing!’ otherwise print ‘Paid in full! Welcome to IQ School!’
+--Do Not use the BalanceOwing field in your solution
+
+DROP PROCEDURE BalanceOrNoBalance
+go
+
+CREATE PROCEDURE BalanceOrNoBalance (@studentid int)
+AS
+-- need to get the total payments (Payments)
+-- need to get the total course cost (Registration -> Offering -> Course)
+DECLARE @totalPayments money,
+        @totalCost money
+
+SELECT @totalPayments = sum(Amount)
+FROM Payment
+WHERE StudentID = @studentid
+
+SELECT @totalCost = sum(CourseCost)
+FROM Registration r inner join Offering o
+		on r.OfferingCode = o.OfferingCode
+		            inner join Course c
+		on o.CourseId = c.CourseId
+WHERE r.StudentID = @studentid
+
+IF @totalPayments >= @totalCost
+BEGIN
+	PRINT 'Paid in full! Welcome to IQ School!'
+END
+ELSE
+BEGIN
+	PRINT 'balance owing'
+END
+
+RETURN
+go
+
+exec BalanceOrNoBalance 200495500
+go
+
+--Create a stored procedure called ‘DoubleOrNothin’. 
+--It will accept a student’s first name and last name as parameters. 
+--If the student’s name already is in the table, 
+--then print ‘We already have a student with the name firstname lastname!’ 
+--Otherwise print ‘Welcome firstname lastname!’
+
+DROP PROCEDURE DoubleOrNothin
+go
+
+CREATE PROCEDURE DoubleOrNothin (@firstname varchar(25), @lastname varchar(25))
+AS
+-- the Exists will use a query to determine if there are any records
+--	returned by the query
+-- the records are not physically available
+-- instead you receive a boolean true or false
+-- since no records are physically available, one uses the Select * From ... as the query
+IF Exists(SELECT * FROM Student WHERE FirstName = @firstname AND LastName = @lastname)
+BEGIN
+	PRINT 'We already have a student with the name ' + @firstname + ' ' + @lastname
+END
+ELSE
+BEGIN
+	PRINT 'Welcome ' + @firstname + ' ' + @lastname
+END
+
+RETURN
+go
+
+exec DoubleOrNothin 'Don','Welch'
+exec DoubleOrNothin 'Peter','Pan'
+go
+
+--Create a procedure called ‘StaffRewards’. It will accept a staff ID as a parameter. 
+--If the number of classes the staff member has ever taught is 
+--between 0 and 10 print ‘Well done!’, 
+--if it is between 11 and 20 print ‘Exceptional effort!’, 
+--if the number is greater than 20 print ‘Totally Awesome Dude!’
+
+DROP PROCEDURE	StaffRewards
+go
+CREATE PROCEDURE StaffRewards (@staffid smallint)	
+AS
+-- count of classes Offering
+ DECLARE @numberOfClass smallint
+
+ SELECT @numberOfClass = count(*)
+ FROM Offering
+ WHERE StaffID = @staffid
+
+ IF @numberOfClass <= 10
+ BEGIN
+	PRINT 'Well done!'  --after executing drop out of IF structure
+ END
+ ELSE
+ BEGIN
+	IF @numberOfClass <= 20 --AND @numberOfClass >= 11  due to logic, this second part of condition is not needed 
+	BEGIN
+		PRINT 'Exceptional effort!' --after executing drop out of IF structure
+	END
+	ELSE
+	BEGIN
+		-- only possibility is the count is > 20 
+		PRINT 'Totally Awesome Dude!' --after executing drop out of IF structure
+	END
+ END --end of the IF structure
+
+RETURN
+go
+
+exec StaffRewards 5
+go
