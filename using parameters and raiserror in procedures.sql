@@ -71,3 +71,130 @@ BEGIN
 	END --eof of @error testing
 END --eof of null testing
 RETURN
+
+--test your procedure
+exec AddClub
+go
+exec AddClub 'bobA04'
+go
+exec AddClub 'bobA04','in your uncle'
+go
+
+--Create a stored procedure called ‘DeleteClub’ to delete a club record.
+DROP PROCEDURE IF EXISTS DeleteClub
+go
+
+CREATE PROCEDURE DeleteClub (@clubid varchar(10) = null)
+AS
+DECLARE @error int,
+		@rowcount int
+DECLARE @msg varchar(100)
+
+IF @clubid is null
+BEGIN
+	RAISERROR('You must provide ClubId',16,1)
+
+END
+ELSE
+BEGIN
+	DELETE Club 
+	WHERE ClubId = @clubid
+
+	SELECT @error = @@ERROR, @rowcount = @@ROWCOUNT
+
+	--abort state
+	IF @error <> 0
+	BEGIN
+		--you cannot concatenate within the message area of the RAISERROR
+		--to create a message with a concatenate set of strings
+		--you will need to create the message separately then use the
+		--		variable within RAISERROR
+		SET @msg = 'Removal of club ' + @clubid + ' failed.'
+		RAISERROR(@msg,16,1)
+	END
+	ELSE
+	BEGIN
+		--test the state of non-abort BUT no rows affected
+		IF @rowcount = 0
+		BEGIN
+			RAISERROR('Data was not removed from the table. Club not found',16,1)
+		END --eof of @rowcount testing
+	END --eof of @error testing
+END --eof of null testing
+RETURN
+go
+exec DeleteClub
+go
+exec DeleteClub 'xxxx'
+go
+exec DeleteClub 'bobA04'
+go
+
+
+
+--Create a stored procedure called ‘Updateclub’ to update a club record. 
+--Do not update the primary key!
+DROP PROCEDURE IF EXISTS UpdateClub
+go
+
+CREATE PROCEDURE UpdateClub (@clubid varchar(10) = null, @clubname varchar(50) = null)
+AS
+
+DECLARE @error int,
+		@rowcount int
+
+IF @clubid is null or @clubname is null
+BEGIN
+	RAISERROR('You must provide both ClubId and ClubName',16,1)
+END
+ELSE
+BEGIN
+
+	UPDATE Club
+	SET ClubName = @clubname
+	WHERE ClubId = @clubid
+
+	SELECT @error = @@ERROR, @rowcount = @@ROWCOUNT
+
+	IF @error <> 0
+	BEGIN
+		RAISERROR('Update of club failed.',16,1)
+	END
+	ELSE
+	BEGIN
+		IF @rowcount = 0
+		BEGIN
+			--substituting a value for a placeholder in your error message
+			--%i number
+			--%s string
+			--syntax: RAISERROR('some message with value "%s" is incorrect',16,1,valuetoinsert)
+			RAISERROR('Data was not updated on the table. Club: "%s" not found',16,1,@clubid)
+		END --eof of @rowcount testing
+	END --eof of @error testing
+END --eof of null testing
+RETURN
+go
+exec UpdateClub
+go
+exec UpdateClub 'bobA04'
+go
+exec UpdateClub 'bobA03','is your cousin'
+go
+exec UpdateClub 'bobA04','is your cousin'
+go
+
+--Create a stored procedure called ‘ClubMaintenance’. 
+--It will accept parameters for both ClubID and ClubName as well as 
+--a parameter to indicate if it is an insert, update or delete. 
+--This parameter will be ‘I’, ‘U’ or ‘D’.  
+--Insert, update, or delete a record accordingly. 
+--Focus on making your code as efficient and maintainable as possible.
+
+--Create a stored procedure called ‘RegisterStudent’ that accepts 
+--StudentID and OfferingCode as parameters. 
+--If the number of students in that Offering is 
+--	not greater than the Max Students for that course, 
+--  add a record to the Registration table 
+--  and add the cost of the course to the student’s balance. 
+--If the registration would cause the Offering to have greater 
+--	than the MaxStudents raise an error. 
