@@ -1,0 +1,33 @@
+--dmit1508 change MaxStudents to 25 (allows an entry) Offering 1001
+UPDATE Course
+SET MaxStudents = 25
+WHERE CourseId = 'DMIT1508'
+go
+--dmit1514 8 change MaxStudents to 8 be full Offering 1000
+UPDATE Course
+SET MaxStudents = 8
+WHERE CourseId = 'DMIT1514'
+go
+exec RegisterStudent
+go
+exec RegisterStudent 19999999,1000 -- no student
+go
+exec RegisterStudent 199912010, 2001 --no offering
+go
+exec RegisterStudent 199912010, 1000 --full
+go
+exec RegisterStudent 199912010, 1001 --already registered
+go
+--good run
+-- old balance 0.00 new balance 675.00 for Joe Petroni
+-- Registration record (probably line 15 in a Select) 1001,200522220,NULL,N
+exec RegisterStudent 200522220, 1001 
+go
+--reset data
+UPDATE Student
+SET BalanceOwing = 0.00
+WHERE StudentID = 200522220
+go
+DELETE Registration
+WHERE StudentID = 200522220 and OfferingCode = 1001
+go
